@@ -27,7 +27,7 @@
     <ul>
       <li class="fragment"><strong>Review Taproot</strong>
       <li class="fragment"><strong>Traditional Multisig</strong>
-      <li class="fragment"><strong>Single Leaf k-of-n Multisig</strong>
+      <li class="fragment"><strong>Single-leaf k-of-n Multisig</strong>
       <li class="fragment"><strong>Multi-leaf k-of-k Multisig</strong>
       <li class="fragment"><strong>Multi-leaf k-of-k MuSig</strong>
       <li class="fragment"><strong>Everything Multisig</strong>
@@ -117,14 +117,15 @@
     </div>
     <div class="stack fragment">
         <div class="row">Stack</div>
-        <span class="elem red">3</span>
-        <span class="elem blue">PubKey C</span>
-        <span class="elem blue">PubKey B</span>
-        <span class="elem blue">PubKey A</span>
-        <span class="elem red">2</span>
-        <span class="elem brown">Signature for C</span>
+        <span class="op red">OP_0</span>
         <span class="elem brown">Signature for A</span>
-        <span class="elem red">0</span>
+        <span class="elem brown">Signature for C</span>
+        <span class="op red">OP_2</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op red">OP_3</span>
+        <span class="op brown">OP_CHECKMULTISIG</span>
     </div>
     </div>
   </section>
@@ -195,7 +196,7 @@
       <li class="fragment green">Non-interactive
       <li class="fragment green">Signers can be determined as you go
       <li class="fragment red">All unlocking conditions revealed
-      <li class="fragment red">No aggregation
+      <li class="fragment red">Public Keys identified
       <li class="fragment red">Large fees
     </ul>
   </section>
@@ -212,10 +213,10 @@
           <div class="blue">Tweaked Pubkey</div>
           <ul>
             <li>
-              <div class="green">n-of-n MuSig</div>
+              <div class="green">3-of-3 MuSig</div>
             </li>
             <li>
-                    <div class="brown">k-of-n TapScript</div>
+                    <div class="brown">2-of-3 TapScript</div>
             </li>
           </ul>
         </li>
@@ -465,7 +466,7 @@
           <div class="blue">Tweaked Pubkey</div>
           <ul>
             <li>
-              <div class="green">n-of-n MuSig</div>
+              <div class="green">3-of-3 MuSig</div>
             </li>
             <li>
               <div class="brown">Tweak</div>
@@ -474,15 +475,15 @@
                     <div class="brown">TapBranch</div>
                     <ul>
                       <li>
-                            <div class="brown">k-of-k</div>
+                            <div class="brown">2-of-2</div>
                       </li>
                       <li>
-                            <div class="brown">k-of-k</div>
+                            <div class="brown">2-of-2</div>
                       </li>
                     </ul>
                   </li>
                   <li>
-                        <div class="brown">k-of-k</div>
+                        <div class="brown">2-of-2</div>
                   </li>
                 </ul>
             </li>
@@ -676,7 +677,7 @@
           <div class="blue">Tweaked Pubkey</div>
           <ul>
             <li>
-              <div class="green">n-of-n MuSig</div>
+              <div class="green">3-of-3 MuSig</div>
             </li>
             <li>
               <div class="brown">Tweak</div>
@@ -685,15 +686,15 @@
                     <div class="brown">TapBranch</div>
                     <ul>
                       <li>
-                            <div class="brown">MuSig</div>
+                            <div class="brown">2-of-2 MuSig</div>
                       </li>
                       <li>
-                            <div class="brown">MuSig</div>
+                            <div class="brown">2-of-2 MuSig</div>
                       </li>
                     </ul>
                   </li>
                   <li>
-                        <div class="brown">MuSig</div>
+                        <div class="brown">2-of-2 MuSig</div>
                   </li>
                 </ul>
             </li>
@@ -800,10 +801,10 @@
                   <div class="brown ">TapBranch</div>
                   <ul>
                     <li>
-                      <div class="brown ">k-of-k</div>
+                      <div class="brown ">2-of-2</div>
                     </li>
                     <li>
-                      <div class="brown ">k-of-k</div>
+                      <div class="brown ">2-of-2</div>
                     </li>
                   </ul>
                 </li>
@@ -811,10 +812,10 @@
                   <div class="brown ">TapBranch</div>
                   <ul>
                     <li>
-                      <div class="brown ">k-of-k</div>
+                      <div class="brown ">2-of-2</div>
                     </li>
                     <li>
-                      <div class="brown ">MuSig</div>
+                      <div class="brown "> MuSig</div>
                     </li>
                   </ul>
                 </li>
@@ -828,15 +829,15 @@
                   <div class="brown ">TapBranch</div>
                   <ul>
                     <li>
-                      <div class="brown ">MuSig</div>
+                      <div class="brown "> MuSig</div>
                     </li>
                     <li>
-                      <div class="brown ">MuSig</div>
+                      <div class="brown "> MuSig</div>
                     </li>
                   </ul>
                 </li>
                 <li>
-                  <div class="brown ">k-of-n</div>
+                  <div class="brown ">2-of-3</div>
                 </li>
               </ul>
             </li>
@@ -865,19 +866,28 @@
     <div class="tree stack">
       <ul>
         <li>
-          <div class="brown ">Tweak</div>
+          <div class="blue">Tweaked PubKey</div>
           <ul>
+            <li>
+              <div class="green ">3-of-3 Musig</div>
+            </li>
+            <li>
+              <div class="brown ">Tweak</div>
+              <ul>
                 <li>
                   <div class="brown ">TapBranch</div>
                   <ul>
                     <li>
-                      <div class="brown ">k-of-n</div>
+                      <div class="brown ">2-of-3</div>
                     </li>
                     <li>
-                      <div class="brown ">timelocked k-1-of-n</div>
+                      <div class="brown ">timelocked 1-of-3</div>
                     </li>
                   </ul>
                 </li>
+              </ul>
+            </li>
+          </ul>
       </ul>
     </div>
   </section>
@@ -1086,6 +1096,21 @@
     <div class="stack">
       <div class="row">Stack </div>
         <span class="elem red">1</span>
+        <span class="elem red">1</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
         <span class="elem red">1</span>
     </div>
     </div>

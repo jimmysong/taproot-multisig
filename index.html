@@ -1,0 +1,1128 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Taproot Multisig</title>
+
+    <link rel="stylesheet" href="dist/custom.css">
+    <link rel="stylesheet" href="dist/reset.css">
+    <link rel="stylesheet" href="dist/reveal.css">
+    <link rel="stylesheet" href="dist/theme/solarized.css">
+
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="plugin/highlight/zenburn.css">
+  </head>
+  <body>
+<div class="reveal">
+  <div class="slides">
+<section>
+  <section>
+    <h1>Taproot Multisig</h1>
+    <h3>Slides: https://jimmysong.github.io/taproot-multisig</h3>
+  </section>
+  <section>
+    <h2>Overview</h2>
+    <ul>
+      <li class="fragment"><strong>Review Taproot</strong>
+      <li class="fragment"><strong>Traditional Multisig</strong>
+      <li class="fragment"><strong>Single Leaf k-of-n Multisig</strong>
+      <li class="fragment"><strong>Multi-leaf k-of-k Multisig</strong>
+      <li class="fragment"><strong>Multi-leaf k-of-k MuSig</strong>
+      <li class="fragment"><strong>Everything Multisig</strong>
+      <li class="fragment"><strong>Degrading MultiSig</strong>
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Taproot Overview</h2>
+    <ul>
+      <li class="fragment">Key Path spend requires a Schnorr signature of the point on the Elliptic Curve.
+      <li class="fragment">Script Path spend requires satisfying a TapScript from a TapRoot tree.
+      <li class="fragment">A TapRoot tree can have up to $2^{128}$ different TapScripts!
+    </ul>
+  </section>
+  <section>
+    <h2>Taproot Structure</h2>
+    <div class="tree">
+      <ul>
+        <li>
+          <div class="blue">Tweaked Pubkey</div>
+          <ul>
+            <li>
+              <div class="green">PubKey</div>
+            </li>
+            <li>
+              <div class="brown">Tweak</div>
+                <ul>
+                  <li>
+                    <div class="brown">TapBranch</div>
+                    <ul>
+                      <li>
+                        <div class="brown">TapLeaf</div>
+                        <ul>
+                          <li>
+                            <div class="brown">TapScript</div>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="brown">TapLeaf</div>
+                        <ul>
+                          <li>
+                            <div class="brown">TapScript</div>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <div class="brown">TapLeaf</div>
+                    <ul>
+                      <li>
+                        <div class="brown">TapScript</div>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Traditional Multisig Script</h2>
+  </section>
+  <section>
+    <div class="container">
+      <div class="stack">
+        <div class="row">ScriptPubKey</div>
+        <span class="op red">OP_2</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op red">OP_3</span>
+        <span class="op brown">OP_CHECKMULTISIG</span>
+    </div>
+    <div class="stack">
+        <div class="row">ScriptSig</div>
+        <span class="op red">OP_0</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    <div class="stack fragment">
+        <div class="row">Stack</div>
+        <span class="elem red">3</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem red">2</span>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem red">0</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Traditional Multisig Script</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op red">OP_0</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem brown">Signature for C</span>
+        <span class="op red">OP_2</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op red">OP_3</span>
+        <span class="op brown">OP_CHECKMULTISIG</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Traditional Multisig Script</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKMULTISIG</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">3</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem red">2</span>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem red">0</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Traditional Multisig Script</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Traditional Advantages/Disadvantages</h2>
+    <ul>
+      <li class="fragment green">Non-interactive
+      <li class="fragment green">Signers can be determined as you go
+      <li class="fragment red">All unlocking conditions revealed
+      <li class="fragment red">No aggregation
+      <li class="fragment red">Large fees
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Single-leaf Multisig TapScript</h2>
+  </section>
+  <section>
+    <h2>Taproot Structure</h2>
+    <div class="tree stack">
+      <ul>
+        <li>
+          <div class="blue">Tweaked Pubkey</div>
+          <ul>
+            <li>
+              <div class="green">n-of-n MuSig</div>
+            </li>
+            <li>
+                    <div class="brown">k-of-n TapScript</div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+  <section>
+    <h3>k-of-n TapScript</h3>
+    <div class="container">
+      <div class="stack">
+        <div class="row">TapScript</div>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+     </div>
+      <div class="stack">
+        <div class="row">Witness</div>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for A</span>
+     </div>
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIG</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIGADD</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem red">1</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIGADD</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey C</span>
+        <span class="elem red">1</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">2</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">2</span>
+        <span class="elem red">2</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-leaf Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Single-Leaf Advantages/Disadvantages</h2>
+    <ul>
+      <li class="fragment green">Non-interactive
+      <li class="fragment green">Signers can be determined as you go
+      <li class="fragment red">All unlocking conditions revealed
+      <li class="fragment red">Public Keys Identifiable
+      <li class="fragment red">Large fees
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Multi-leaf k-of-k TapScript</h2>
+  </section>
+  <section>
+    <h2>Taproot Structure</h2>
+    <div class="tree stack">
+      <ul>
+        <li>
+          <div class="blue">Tweaked Pubkey</div>
+          <ul>
+            <li>
+              <div class="green">n-of-n MuSig</div>
+            </li>
+            <li>
+              <div class="brown">Tweak</div>
+                <ul>
+                  <li>
+                    <div class="brown">TapBranch</div>
+                    <ul>
+                      <li>
+                            <div class="brown">k-of-k</div>
+                      </li>
+                      <li>
+                            <div class="brown">k-of-k</div>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                        <div class="brown">k-of-k</div>
+                  </li>
+                </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+  <section>
+    <h2>k-of-k TapScript</h2>
+    <div class="container">
+      <div class="stack">
+        <div class="row">TapScript</div>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+     </div>
+      <div class="stack">
+        <div class="row">Witness</div>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">Signature for A</span>
+     </div>
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">Signature for C</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf k-of-k Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIG</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem brown">Signature for A</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf k-of-k Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf k-of-k Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIGADD</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey C</span>
+        <span class="elem red">1</span>
+        <span class="elem brown">Signature for C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf k-of-k Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op red">OP_2</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">2</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf k-of-k Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">2</span>
+        <span class="elem red">2</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf k-of-k Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf Advantages/Disadvantages</h2>
+    <ul>
+      <li class="fragment green">Non-interactive
+      <li class="fragment red">Signers must be determined beforehand
+      <li class="fragment green">Only one unlocking condition revealed
+      <li class="fragment red">Public Keys Identifiable
+      <li class="fragment green">Smaller fees
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Multi-leaf Musig TapScript</h2>
+  </section>
+  <section>
+    <h2>Taproot Structure</h2>
+    <div class="tree stack">
+      <ul>
+        <li>
+          <div class="blue">Tweaked Pubkey</div>
+          <ul>
+            <li>
+              <div class="green">n-of-n MuSig</div>
+            </li>
+            <li>
+              <div class="brown">Tweak</div>
+                <ul>
+                  <li>
+                    <div class="brown">TapBranch</div>
+                    <ul>
+                      <li>
+                            <div class="brown">MuSig</div>
+                      </li>
+                      <li>
+                            <div class="brown">MuSig</div>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                        <div class="brown">MuSig</div>
+                  </li>
+                </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf MuSig</h2>
+    <div class="container">
+      <div class="stack">
+        <div class="row">TapScript</div>
+        <span class="elem blue">PubKey A+C</span>
+        <span class="op brown">OP_CHECKSIG</span>
+     </div>
+      <div class="stack">
+        <div class="row">Witness</div>
+        <span class="elem brown">Sig for A+C</span>
+     </div>
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">Sig for A+C</span>
+        <span class="elem blue">PubKey A+C</span>
+        <span class="op brown">OP_CHECKSIG</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf MuSig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">Sig for A+C</span>
+        <span class="elem blue">PubKey A+C</span>
+        <span class="op brown">OP_CHECKSIG</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf MuSig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIG</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey A+C</span>
+        <span class="elem brown">Sig for A+C</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf MuSig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Multi-leaf MuSig Advantages/Disadvantages</h2>
+    <ul>
+      <li class="fragment red">Interactive
+      <li class="fragment red">Signers must be determined beforehand
+      <li class="fragment green">Only one unlocking condition revealed
+      <li class="fragment green">Public Keys not revealed, higher privacy
+      <li class="fragment green">Smallest fees
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Multi-leaf Everything</h2>
+  </section>
+  <section>
+    <h2>Taproot Structure</h2>
+    <div class="tree stack">
+      <ul>
+        <li>
+          <div class="brown ">Tweak</div>
+          <ul>
+            <li>
+              <div class="brown ">TapBranch</div>
+              <ul>
+                <li>
+                  <div class="brown ">TapBranch</div>
+                  <ul>
+                    <li>
+                      <div class="brown ">k-of-k</div>
+                    </li>
+                    <li>
+                      <div class="brown ">k-of-k</div>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <div class="brown ">TapBranch</div>
+                  <ul>
+                    <li>
+                      <div class="brown ">k-of-k</div>
+                    </li>
+                    <li>
+                      <div class="brown ">MuSig</div>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <div class="brown ">TapBranch</div>
+              <ul>
+                <li>
+                  <div class="brown ">TapBranch</div>
+                  <ul>
+                    <li>
+                      <div class="brown ">MuSig</div>
+                    </li>
+                    <li>
+                      <div class="brown ">MuSig</div>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <div class="brown ">k-of-n</div>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+  <section>
+    <h2>Everything Advantages/Disadvantages</h2>
+    <ul>
+      <li class="fragment blue">Interactive or Non-interactive
+      <li class="fragment blue">Signers can be determined beforehand
+      <li class="fragment blue">Reveal whatever conditions you want
+      <li class="fragment blue">Public Keys may or may not be identifiable
+      <li class="fragment blue">Fees traded off
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>Degrading Multisig TapScript</h2>
+  </section>
+  <section>
+    <h2>Taproot Structure</h2>
+    <div class="tree stack">
+      <ul>
+        <li>
+          <div class="brown ">Tweak</div>
+          <ul>
+                <li>
+                  <div class="brown ">TapBranch</div>
+                  <ul>
+                    <li>
+                      <div class="brown ">k-of-n</div>
+                    </li>
+                    <li>
+                      <div class="brown ">timelocked k-1-of-n</div>
+                    </li>
+                  </ul>
+                </li>
+      </ul>
+    </div>
+  </section>
+  <section>
+    <h3>timelocked k-1-of-n TapScript</h3>
+    <div class="container">
+      <div class="stack">
+        <div class="row">TapScript</div>
+        <span class="elem blue">1 yr</span>
+        <span class="op brown">OP_CSV</span>
+        <span class="op brown">OP_DROP</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+     </div>
+      <div class="stack">
+        <div class="row">Witness</div>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+     </div>
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+        <span class="elem blue">1 yr</span>
+        <span class="op brown">OP_CSV</span>
+        <span class="op brown">OP_DROP</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+        <span class="elem blue">1 yr</span>
+        <span class="op brown">OP_CSV</span>
+        <span class="op brown">OP_DROP</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op brown">OP_DROP</span>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CSV</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">1 yr</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey A</span>
+        <span class="op brown">OP_CHECKSIG</span>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_DROP</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">1 yr</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey B</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIG</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey A</span>
+        <span class="elem brown">''</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="elem blue">PubKey C</span>
+        <span class="op brown">OP_CHECKSIGADD</span>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIGADD</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey B</span>
+        <span class="elem red">0</span>
+        <span class="elem brown">Signature for B</span>
+        <span class="elem brown">''</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+        <span class="op red">OP_1</span>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_CHECKSIGADD</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem blue">PubKey C</span>
+        <span class="elem red">1</span>
+        <span class="elem brown">''</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig</h2>
+    <div class="container">
+    <div class="stack">
+        <div class="row">Execution</div>
+    </div>
+    <div class="stack">
+      <div class="row"> Current OP</div>
+        <span class="op brown">OP_NUMEQUAL</span>
+    </div>
+    <div class="stack">
+      <div class="row">Stack </div>
+        <span class="elem red">1</span>
+        <span class="elem red">1</span>
+    </div>
+    </div>
+  </section>
+  <section>
+    <h2>Degrading Multisig Advantages/Disadvantages</h2>
+    <ul>
+      <li class="fragment green">Backup in case of Key Loss
+      <li class="fragment green">Built-in Inheritance/Estate planning
+      <li class="fragment red">Funds have to be moved before timelock
+    </ul>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>@jimmysong on <a href="https://twitter.com/jimmysong">Twitter</a>, <a href="https://github.com/jimmysong/">Github</a>, <a href="https://jimmysong.medium.com/">Medium</a> and <a href="https://jimmysong.substack.com/">Substack</a></h2>
+  </section>
+</section>
+</div>
+</div>
+<script src="dist/reveal.js"></script>
+<script src="plugin/notes/notes.js"></script>
+<script src="plugin/markdown/markdown.js"></script>
+<script src="plugin/highlight/highlight.js"></script>
+<script src="plugin/math/math.js"></script>
+<script>
+  // More info about initialization & config:
+  // - https://revealjs.com/initialization/
+  // - https://revealjs.com/config/
+  Reveal.initialize({
+      hash: true,
+      plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath ]
+  });
+  MathJax.Hub.Config({
+      jax: ["input/TeX","output/HTML-CSS"],
+      displayAlign: "left"
+  });
+</script>
+</body>
+</html>
